@@ -23,7 +23,7 @@ namespace API.Controllers
         }
 
         // GET: api/TodoItems
-        [HttpGet]
+            [HttpGet]
             public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
             {
                 return await _context.TodoItems.ToListAsync();
