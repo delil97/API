@@ -2,26 +2,47 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LiteDB;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
+using API.Model;
 namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class TestController : ControllerBase
     {
-        [HttpGet]
+        [HttpGet] 
         public ActionResult Get()
         {
-            List<string> listOfstrings = new List<string>();
-            listOfstrings.Add("Hej");
-            listOfstrings.Add("Test");
-            listOfstrings.Add("Lista");
-            listOfstrings.Add("Test");
-            listOfstrings.Add("Hej");
+            using (var db = new LiteDatabase(@"C:\Temp\MyData.db"))
+            {
+                // Get a collection (or create, if doesn't exist)
+                var col = db.GetCollection<Customer>("customers");
 
-            return Ok(listOfstrings);
+                // Create your new customer instance
+                var customer = new Customer
+                {
+                    Name = "John Doe",
+                    Phones = new string[] { "8000-0000", "9000-0000" },
+                    IsActive = true
+                };
+
+                // Insert new customer document (Id will be auto-incremented)
+                col.Insert(customer);
+
+                // Use LINQ to query documents (filter, sort, transform)
+                var results = col.Query()
+                    .Where(x => x.Name.StartsWith("J"))
+                    .OrderBy(x => x.Name)
+                    .Select(x => new { x.Name, NameUpper = x.Name.ToUpper() })
+                    .Limit(10)
+                    .ToList();
+
+                return Ok(results);
+            }
+
+            return BadRequest();
         }
     }
 }
